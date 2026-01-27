@@ -160,9 +160,9 @@ void run_factory_test(void)
 {
 	printf("DDRINFO: Starting 1MB DDR test at 1GB intervals\n");
 	run_ddr_test();
-	if (factory_test_emmc())
-		hang();
+	if (0 == factory_test_emmc()) {
+		printf("FACTORY TEST PASS\n");
+	}
 
-	printf("FACTORY TEST PASS\n");
 	hang();
 }
