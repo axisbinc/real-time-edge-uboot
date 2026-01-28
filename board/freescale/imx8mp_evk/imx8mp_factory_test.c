@@ -8,6 +8,7 @@ All Rights Reserved. Confidential and Proprietary.
 #include <hang.h>
 #include <init.h>
 #include <log.h>
+#include <mmc.h>
 
 #define TEST_SIZE		0x100000
 #define NUM_TEST_LOCATIONS   6
@@ -99,6 +100,54 @@ static void read_and_verify_test_data(const uint64_t* test_addresses, int num_lo
 	}
 }
 
+static int factory_test_emmc(void)
+{
+	struct mmc *mmc;
+	int ret;
+	int mmc_count;
+
+	printf("FACTORY: Probing eMMC...\n");
+
+	/* MMC devices are probed before find_mmc_device() */
+	ret = mmc_initialize(NULL);
+	if (ret) {
+		printf("FACTORY: mmc_initialize() failed: %d\n", ret);
+		return -1;
+	}
+
+	mmc_count = get_mmc_num();
+	if (mmc_count <= 0) {
+		printf("FACTORY: No MMC devices detected\n");
+		return -1;
+	}
+
+	for (int dev = 0; dev < mmc_count; dev++) {
+		mmc = find_mmc_device(dev);
+		if (!mmc) {
+			printf("FACTORY: mmc dev %d not found\n", dev);
+			continue;
+		}
+
+		if (mmc_init(mmc)) {
+			printf("FACTORY: mmc dev %d init failed\n", dev);
+			continue;
+		}
+
+		if (IS_MMC(mmc)) {
+			printf("FACTORY: eMMC detected successfully (mmc dev %d)\n", dev);
+			return 0;
+		}
+
+		if (IS_SD(mmc))
+			printf("FACTORY: mmc dev %d is SD \n", dev);
+		else
+			printf("FACTORY: mmc dev %d is unknown type \n", dev);
+	}
+
+	printf("FACTORY: eMMC device not found\n");
+	return -1;
+}
+
 static void run_ddr_test(void)
 {
 	printf("DDRINFO: Writing 1MB test data at 6 locations...\n");
@@ -111,7 +160,9 @@ void run_factory_test(void)
 {
 	printf("DDRINFO: Starting 1MB DDR test at 1GB intervals\n");
 	run_ddr_test();
+	if (0 == factory_test_emmc()) {
+		printf("FACTORY TEST PASS\n");
+	}
 
-	// Hang after all the tests are completed
-	for(;;);
+	hang();
 }
