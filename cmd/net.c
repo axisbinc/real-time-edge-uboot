@@ -21,6 +21,7 @@
 #include <net/udp.h>
 #include <net/sntp.h>
 #include <net/ncsi.h>
+#include <net/udp_wait.h>
 
 static int netboot_common(enum proto_t, struct cmd_tbl *, int, char * const []);
 
@@ -552,6 +553,47 @@ U_BOOT_CMD(
 	sntp,	2,	1,	do_sntp,
 	"synchronize RTC via network",
 	"[NTP server IP]\n"
+);
+#endif
+
+#if defined(CONFIG_CMD_UDP_WAIT)
+static struct udp_ops udp_wait_ops = {
+	.prereq = udp_wait_prereq,
+	.start = udp_wait_start,
+	.data = NULL,
+};
+
+int do_udp_wait(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+{
+	if (argc < 2)
+		return CMD_RET_USAGE;
+
+	udp_wait_port = simple_strtoul(argv[1], NULL, 10);
+	if (udp_wait_port <= 0 || udp_wait_port > 65535) {
+		printf("Invalid port: %s\n", argv[1]);
+		return CMD_RET_FAILURE;
+	}
+
+	if (argc >= 3)
+		udp_wait_timeout = simple_strtoul(argv[2], NULL, 10);
+	else
+		udp_wait_timeout = 30000; /* Default 30 seconds */
+
+	if (udp_loop(&udp_wait_ops) < 0) {
+		printf("UDP wait failed on port %d\n", udp_wait_port);
+		return CMD_RET_FAILURE;
+	}
+
+	return CMD_RET_SUCCESS;
+}
+
+U_BOOT_CMD(
+	udp_wait,	3,	0,	do_udp_wait,
+	"wait for UDP trigger packet",
+	"<port> [timeout_ms]\n"
+	"    - Wait for UDP packet on <port> for [timeout_ms] (default 30000)\n"
+	"    - Packet payload format: serverip:port:bootfile\n"
+	"    - Sets serverip, tftpport, bootfile env vars and sends ACK\n"
 );
 #endif
 

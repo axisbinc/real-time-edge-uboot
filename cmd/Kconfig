@@ -1875,6 +1875,14 @@ config CMD_SNTP
 	help
 	  Synchronize RTC via network
 
+config CMD_UDP_WAIT
+	bool "udp_wait"
+	select PROT_UDP
+	help
+	  Wait for a UDP trigger packet on a specified port.
+	  Parses payload to set serverip, port, bootfile environment
+	  variables and sends an ACK packet back.
+
 config CMD_DNS
 	bool "dns"
 	help
