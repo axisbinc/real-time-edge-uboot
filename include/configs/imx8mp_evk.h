@@ -90,7 +90,7 @@
 	"udp_trigger_timeout=10000\0" \
 	"fdt_addr_tftpboot=0x51000000\0" \
 	"bootcmd_default=" CONFIG_BOOTCOMMAND "\0" \
-	"bootcmd=udp_trigger_boot\0"
+	"bootcmd=tftp_trigger_boot\0"
 #else
 #define UDP_TRIGGER_ENV_SETTINGS
 #endif
