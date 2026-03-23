@@ -83,6 +83,18 @@
 		"booti ${loadaddr} - ${fdt_addr_r}"
 
 #else
+
+#ifdef CONFIG_CMD_TFTP_TRIGGER_BOOT
+#define UDP_TRIGGER_ENV_SETTINGS \
+	"udp_port_for_trigger=5000\0" \
+	"udp_trigger_timeout=10000\0" \
+	"fdt_addr_tftpboot=0x51000000\0" \
+	"bootcmd_default=" CONFIG_BOOTCOMMAND "\0" \
+	"bootcmd=udp_trigger_boot\0"
+#else
+#define UDP_TRIGGER_ENV_SETTINGS
+#endif
+
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CFG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
@@ -97,6 +109,7 @@
 	"console=ttymxc1,115200\0" \
 	"fdt_addr_r=0x43000000\0"			\
 	"fdt_addr=0x43000000\0"			\
+	UDP_TRIGGER_ENV_SETTINGS \
 	"boot_fdt=try\0" \
 	"fdt_high=0xffffffffffffffff\0"		\
 	"boot_fit=no\0" \
