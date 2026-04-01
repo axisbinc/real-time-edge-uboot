@@ -50,18 +50,6 @@ static void udp_wait_trim_trailing_whitespace(char *s)
 		s[--len] = '\0';
 }
 
-static void udp_wait_send_ack(struct in_addr dest, int dport, int sport)
-{
-	uchar *pkt;
-	const char *ack_msg = "ACK";
-	int len = 3;
-
-	pkt = net_tx_packet + net_eth_hdr_size() + IP_UDP_HDR_SIZE;
-	memcpy(pkt, ack_msg, len);
-
-	net_send_udp_packet(net_server_ethaddr, dest, dport, sport, len);
-}
-
 static void udp_wait_timeout_handler(void)
 {
 	puts("UDP wait: timeout\n");
@@ -173,9 +161,6 @@ static void udp_wait_handler(uchar *pkt, unsigned dest, struct in_addr sip,
 	env_set("trigger_srcip", tmp);
 	snprintf(tmp, sizeof(tmp), "%d", src);
 	env_set("trigger_srcport", tmp);
-
-	/* Send ACK packet back to sender */
-	udp_wait_send_ack(sip, src, udp_wait_our_port);
 
 	printf("UDP wait: trigger accepted, serverip=%s\n", env_get("serverip"));
 

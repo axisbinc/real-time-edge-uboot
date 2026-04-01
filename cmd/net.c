@@ -610,7 +610,7 @@ U_BOOT_CMD(
 	"[port] [timeout_ms]\n"
 	"    - Wait for UDP packet (defaults: $udp_port_for_trigger, $udp_trigger_timeout)\n"
 	"    - Packet payload format: serverip:port:bootfile\n"
-	"    - Sets serverip, tftpport, bootfile env vars and sends ACK\n"
+	"    - Sets serverip, tftpport, bootfile env vars\n"
 );
 
 #endif /* CONFIG_CMD_UDP_WAIT */
