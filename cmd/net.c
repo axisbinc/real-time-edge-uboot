@@ -637,7 +637,11 @@ static int do_tftp_trigger_boot(struct cmd_tbl *cmdtp, int flag, int argc,
 			      char *const argv[])
 {
 	char cmd[128];
+	char bootargs[256];
 	const char *fdt_addr;
+	const char *console;
+	const char *baudrate;
+	int len;
 
 	/* Keep this fixed as requested */
 	/* TODO: remove this hardcoding */
@@ -660,8 +664,39 @@ static int do_tftp_trigger_boot(struct cmd_tbl *cmdtp, int flag, int argc,
 		return tftp_trigger_fallback_to_bootcmd_default();
 
 	/* TODO: scan and set mmcrootpart? For now just hardcode to mmcblk1p1 as requested */
-	env_set("bootargs",
-		"console=${console},${baudrate} root=/dev/mmcblk1p1 rootwait rw");
+	/* Correctly set console and baudrate */
+	console = env_get("console");
+	baudrate = env_get("baudrate");
+
+	if (!console || !*console)
+		console = NULL;
+	if (!baudrate || !*baudrate)
+		baudrate = NULL;
+
+	if (console) {
+		/*
+		 * Some environments put speed in $console already (e.g. "ttymxc1,115200").
+		 * Only append $baudrate if $console has no comma.
+		 */
+		if (!baudrate || strchr(console, ','))
+			len = snprintf(bootargs, sizeof(bootargs),
+				      "console=%s root=/dev/mmcblk1p1 rootwait rw",
+				      console);
+		else
+			len = snprintf(bootargs, sizeof(bootargs),
+				      "console=%s,%s root=/dev/mmcblk1p1 rootwait rw",
+				      console, baudrate);
+	} else {
+		len = snprintf(bootargs, sizeof(bootargs),
+			      "root=/dev/mmcblk1p1 rootwait rw");
+	}
+
+	if (len < 0 || len >= sizeof(bootargs)) {
+		puts("tftp_trigger_boot: bootargs buffer too small\n");
+		return tftp_trigger_fallback_to_bootcmd_default();
+	}
+
+	env_set("bootargs", bootargs);
 
 	snprintf(cmd, sizeof(cmd), "booti ${loadaddr} - %s", fdt_addr);
 	if (run_command(cmd, 0))
