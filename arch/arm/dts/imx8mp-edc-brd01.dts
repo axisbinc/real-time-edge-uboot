@@ -86,7 +86,6 @@
 	snps,force_thresh_dma_mode;
 	snps,mtl-tx-config = <&mtl_tx_setup>;
 	snps,mtl-rx-config = <&mtl_rx_setup>;
-	nvmem-cells = <&eth_mac1>;
 	status = "okay";
 
 	mdio {
