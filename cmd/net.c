@@ -561,6 +561,7 @@ static struct udp_ops udp_wait_ops = {
 	.prereq = udp_wait_prereq,
 	.start = udp_wait_start,
 	.data = NULL,
+	.flags = UDP_OPS_NO_IPADDR,
 };
 
 int do_udp_wait(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
@@ -609,6 +610,7 @@ U_BOOT_CMD(
 	"wait for UDP trigger packet",
 	"[port] [timeout_ms]\n"
 	"    - Wait for UDP packet (defaults: $udp_port_for_trigger, $udp_trigger_timeout)\n"
+	"    - Does not require $ipaddr (receive-only)\n"
 	"    - Packet payload format: serverip:port:bootfile\n"
 	"    - Sets serverip, tftpport, bootfile env vars\n"
 );
@@ -664,7 +666,6 @@ static int do_tftp_trigger_boot(struct cmd_tbl *cmdtp, int flag, int argc,
 		return tftp_trigger_fallback_to_bootcmd_default();
 
 	/* TODO: scan and set mmcrootpart? For now just hardcode to mmcblk1p1 as requested */
-	/* Correctly set console and baudrate */
 	console = env_get("console");
 	baudrate = env_get("baudrate");
 
